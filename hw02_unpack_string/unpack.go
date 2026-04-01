@@ -2,11 +2,56 @@ package hw02unpackstring
 
 import (
 	"errors"
+	"fmt"
+	"strings"
+	"unicode"
 )
 
 var ErrInvalidString = errors.New("invalid string")
 
-func Unpack(_ string) (string, error) {
-	// Place your code here.
-	return "", nil
+func Unpack(str string) (string, error) {
+	if len(str) > 0 && unicode.IsDigit([]rune(str)[0]) {
+		return "", ErrInvalidString
+	}
+
+	var prevElem rune
+	var currElem rune
+	var builder strings.Builder
+	var hasPrevNonDigitSymbol bool
+	var digit int
+
+	for _, strElem := range str {
+		currElem = strElem
+		if unicode.IsDigit(currElem) {
+			if !hasPrevNonDigitSymbol {
+				return "", ErrInvalidString
+			}
+
+			digit = int(currElem - '0')
+			unpackSymbols(&builder, prevElem, digit)
+			hasPrevNonDigitSymbol = false
+		} else {
+
+			if hasPrevNonDigitSymbol {
+				unpackSymbols(&builder, prevElem, 1)
+			}
+			prevElem = currElem
+			hasPrevNonDigitSymbol = true
+		}
+	}
+
+	//последний символ тоже не забываем
+	if hasPrevNonDigitSymbol {
+		unpackSymbols(&builder, prevElem, 1)
+	}
+
+	return builder.String(), nil
+}
+
+// не забываем про указатель
+func unpackSymbols(builder *strings.Builder, runeElem rune, runeNumber int) {
+	for i := 0; i < int(runeNumber); i++ {
+		fmt.Println(string(runeElem))
+		builder.WriteString(string(runeElem))
+	}
 }
