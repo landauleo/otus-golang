@@ -87,7 +87,7 @@ func TestTop10(t *testing.T) {
 			"one",
 			"cat",
 			"cats",
-			"dog",
+			"dog,",
 			"dog,two",
 			"man",
 		}
