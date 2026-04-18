@@ -79,4 +79,28 @@ func TestTop10(t *testing.T) {
 			require.Equal(t, expected, Top10(text))
 		}
 	})
+
+	t.Run("positive test from task description", func(t *testing.T) {
+		testFromDescription := "cat and dog, one dog,two cats and one man"
+		expected := []string{
+			"and",
+			"one",
+			"cat",
+			"cats",
+			"dog,",
+			"dog,two",
+			"man",
+		}
+		require.Equal(t, expected, Top10(testFromDescription))
+	})
+
+	t.Run("positive test with alphabet sort", func(t *testing.T) {
+		textFromDescription := "аромат антиквариат_ абракадарбра!!! "
+		expected := []string{
+			"абракадарбра!!!",
+			"антиквариат_",
+			"аромат",
+		}
+		require.Equal(t, expected, Top10(textFromDescription))
+	})
 }
