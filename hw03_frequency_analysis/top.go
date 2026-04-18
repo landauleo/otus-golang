@@ -15,10 +15,6 @@ func Top10(str string) []string {
 	}
 
 	//тут я долго не верила, что в GO нет сортировки по значениям мапы!!!
-	type wordCount struct {
-		word  string
-		count int
-	}
 	resultStruct := make([]wordCount, 0, len(wordsMap))
 
 	for w, c := range wordsMap {
@@ -38,4 +34,9 @@ func Top10(str string) []string {
 		result = append(result, resultStruct[i].word)
 	}
 	return result
+}
+
+type wordCount struct {
+	word  string
+	count int
 }
