@@ -49,8 +49,40 @@ func TestCache(t *testing.T) {
 		require.Nil(t, val)
 	})
 
-	t.Run("purge logic", func(t *testing.T) {
-		// Write me
+	t.Run("remove item if capacity exceeded", func(t *testing.T) {
+		c := NewCache(2)
+
+		c.Set("aaa", 100)
+		_, ok := c.Get("aaa")
+		require.True(t, ok)
+
+		c.Set("bbb", 200)
+		c.Set("ccc", 300)
+
+		//capacity exceeded, "aaa" should have been removed
+		deleted, ok := c.Get("aaa")
+		require.False(t, ok)
+		require.Nil(t, deleted)
+
+	})
+
+	t.Run("remove item if not least recently used", func(t *testing.T) {
+		c := NewCache(3)
+
+		c.Set("aaa", 100)
+		c.Set("bbb", 200)
+		c.Set("ccc", 300)
+
+		c.Get("aaa")
+		c.Get("bbb")
+
+		//capacity exceeded, "ccc" (not used element) should have been removed
+		c.Set("ddd", 400)
+
+		notUsedElem, ok := c.Get("ccc")
+		require.False(t, ok)
+		require.Nil(t, notUsedElem)
+
 	})
 }
 

@@ -29,7 +29,7 @@ func (l *lruCache) Set(key Key, value interface{}) bool {
 		return true
 	}
 
-	if l.queue.Len() > l.capacity {
+	if l.queue.Len()+1 > l.capacity {
 		lastItem := l.queue.Back()
 		delete(l.items, lastItem.Value.(*cacheItem).key)
 		l.queue.Remove(l.queue.Back())
@@ -49,6 +49,8 @@ func (l *lruCache) Get(key Key) (interface{}, bool) {
 }
 
 func (l *lruCache) Clear() {
+	l.items = make(map[Key]*ListItem)
+	l.queue = NewList()
 }
 
 func NewCache(capacity int) Cache {
