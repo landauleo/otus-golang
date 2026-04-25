@@ -63,6 +63,9 @@ func (l *lruCache) Get(key Key) (any, bool) {
 }
 
 func (l *lruCache) Clear() {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
 	l.items = make(map[Key]*ListItem)
 	l.queue = NewList()
 }

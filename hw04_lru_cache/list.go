@@ -1,5 +1,7 @@
 package hw04lrucache
 
+import "sync"
+
 type List interface {
 	Len() int
 	Front() *ListItem
@@ -22,24 +24,37 @@ type list struct {
 	//даже если его методы пока не реализованы
 
 	//так как список двусвязный, иным способом до данных не добраться
+	mu    sync.RWMutex
 	first *ListItem
 	last  *ListItem
 	size  int
 }
 
 func (l *list) Len() int {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+
 	return l.size
 }
 
 func (l *list) Front() *ListItem {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+
 	return l.first
 }
 
 func (l *list) Back() *ListItem {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+
 	return l.last
 }
 
 func (l *list) PushFront(v interface{}) *ListItem {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
 	newItem := new(ListItem)
 	newItem.Value = v
 
@@ -56,6 +71,9 @@ func (l *list) PushFront(v interface{}) *ListItem {
 }
 
 func (l *list) PushBack(v interface{}) *ListItem {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
 	newItem := new(ListItem)
 	newItem.Value = v
 
@@ -72,6 +90,9 @@ func (l *list) PushBack(v interface{}) *ListItem {
 }
 
 func (l *list) Remove(i *ListItem) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
 	if i == l.first {
 		l.first = i.Next
 	}
@@ -93,6 +114,9 @@ func (l *list) Remove(i *ListItem) {
 }
 
 func (l *list) MoveToFront(i *ListItem) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
 	//первый элемент не проверяем, так как он уже в начале списка
 	if i == l.first {
 		return
