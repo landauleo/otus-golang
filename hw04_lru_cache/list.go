@@ -82,9 +82,11 @@ func (l *list) Remove(i *ListItem) {
 	//"замыкаем" соседей убранного элемента
 	if i.Prev != nil {
 		i.Prev.Next = i.Next
+		i.Prev = nil
 	}
 	if i.Next != nil {
 		i.Next.Prev = i.Prev
+		i.Next = nil
 	}
 
 	l.size--
