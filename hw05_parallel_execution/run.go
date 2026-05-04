@@ -38,9 +38,11 @@ func Run(tasks []Task, n, m int) error {
 		}
 	}
 
+	close(tasksChannel)
+
 	wg.Wait() //важно ставить в конце, чтобы не дать main завершиться
 
-	if errorCounter.Load() > 0 {
+	if errorCounter.Load() >= int64(m) {
 		return ErrErrorsLimitExceeded
 	}
 
