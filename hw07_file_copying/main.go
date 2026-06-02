@@ -16,7 +16,8 @@ func init() {
 	flag.Int64Var(&offset, "offset", 0, "offset in input file")
 }
 
+// go run . -from="testdata/input.txt" -to="out.txt" -limit=100 -offset=0
 func main() {
-	flag.Parse()
-	// Place your code here.
+	flag.Parse() //сначала парсим флаги
+	Copy(from, to, offset, limit)
 }
