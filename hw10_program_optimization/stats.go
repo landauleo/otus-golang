@@ -8,7 +8,7 @@ import (
 )
 
 type User struct {
-	Email string `json:"email"` //вот это имба
+	Email string `json:"email"` // вот это имба
 }
 
 type DomainStat map[string]int
@@ -18,7 +18,7 @@ func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 }
 
 // ВАЖНО: когда даешь имена возвращаемым значениям,
-// язык создает их в начале вызова функции и инициализирует нулевыми значениями
+// язык создает их в начале вызова функции и инициализирует нулевыми значениями.
 func getEmails(r io.Reader, domain string) (DomainStat, error) {
 	result := make(DomainStat)
 	scanner := bufio.NewScanner(r)
@@ -29,7 +29,7 @@ func getEmails(r io.Reader, domain string) (DomainStat, error) {
 			continue
 		}
 		email := user.Email
-		//at - это то, как символ @ читается на ангельском
+		// at - это то, как символ @ читается на ангельском
 		atIndex := strings.Index(email, "@")
 		if atIndex == -1 {
 			continue
