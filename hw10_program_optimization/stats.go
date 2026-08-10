@@ -1,10 +1,10 @@
 package hw10programoptimization
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
-	"regexp"
 	"strings"
 )
 
@@ -21,46 +21,51 @@ type User struct {
 type DomainStat map[string]int
 
 func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
-	u, err := getUsers(r)
+	emails, err := getUsers(r)
 	if err != nil {
 		return nil, fmt.Errorf("get users error: %w", err)
 	}
-	return countDomains(u, domain)
+	return countDomains(emails, domain)
 }
 
-type users [100_000]User
+type emails [100_000]string //это массив!!!
 
-func getUsers(r io.Reader) (result users, err error) {
-	content, err := io.ReadAll(r)
-	if err != nil {
-		return
-	}
+// ВАЖНО: когда даешь имена возвращаемым значениям,
+// язык создает их в начале вызова функции и инициализирует нулевыми значениями
+func getUsers(r io.Reader) (result emails, err error) {
+	scanner := bufio.NewScanner(r)
+	var i = 0
+	var user User
 
-	lines := strings.Split(string(content), "\n")
-	for i, line := range lines {
-		var user User
-		if err = json.Unmarshal([]byte(line), &user); err != nil {
-			return
+	for scanner.Scan() {
+		if err := json.Unmarshal(scanner.Bytes(), &user); err != nil {
+			continue
 		}
-		result[i] = user
+		result[i] = user.Email
+		i++
 	}
 	return
 }
 
-func countDomains(u users, domain string) (DomainStat, error) {
+func countDomains(e emails, domain string) (DomainStat, error) {
 	result := make(DomainStat)
 
-	for _, user := range u {
-		matched, err := regexp.Match("\\."+domain, []byte(user.Email))
-		if err != nil {
-			return nil, err
+	for _, email := range e {
+		//at - это то, как символ @ читается на ангельском
+		atIndex := strings.Index(email, "@")
+		if atIndex == -1 {
+			continue
+		}
+		domainIndex := strings.LastIndex(email, domain)
+		if domainIndex == -1 || domainIndex <= atIndex {
+			continue
 		}
 
-		if matched {
-			num := result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])]
-			num++
-			result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])] = num
-		}
+		key := strings.ToLower(strings.TrimSuffix(email[atIndex+1:], "."))
+
+		num := result[key]
+		num++
+		result[key] = num
 	}
 	return result, nil
 }
