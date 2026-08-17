@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 )
@@ -15,7 +16,9 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	//чтобы использовать offset/limit нужно сначала открыть файл
 	file, err := os.Open(fromPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open file: %w", err) // TODO: в го обычно мы врапаем ошибки,
+		// чтобы они содержали больше контекста.
+		// Например тут errors.Wrap(err, "failed to open file"). В остальных местах по аналогии
 	}
 
 	defer file.Close()

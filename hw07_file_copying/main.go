@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 )
 
 var (
@@ -19,5 +20,10 @@ func init() {
 // go run . -from="testdata/input.txt" -to="out.txt" -limit=100 -offset=0
 func main() {
 	flag.Parse() //сначала парсим флаги
-	Copy(from, to, offset, limit)
+
+	err := Copy(from, to, offset, limit)
+	if err != nil {
+		fmt.Printf("ты лох %v", err)
+		return
+	}
 }
