@@ -25,7 +25,7 @@ func RunCmd(cmd []string, env Environment) (returnCode int) {
 	//то у нас не будет ли текущей директории, ни кодировки и прочее
 	rawEnv := os.Environ()
 
-	tempMap := make(map[string]string)
+	tempMap := make(map[string]string, len(rawEnv)+len(env))
 
 	for _, kv := range rawEnv {
 		k, v, _ := strings.Cut(kv, "=")
@@ -42,7 +42,7 @@ func RunCmd(cmd []string, env Environment) (returnCode int) {
 	}
 
 	//обратно всё склеиваем
-	var finalEnv []string
+	finalEnv := make([]string, 0, len(tempMap))
 	for k, v := range tempMap {
 		finalEnv = append(finalEnv, k+"="+v)
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -19,10 +20,10 @@ type EnvValue struct {
 func ReadDir(dir string) (Environment, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read env dir %q: %w", dir, err)
 	}
 
-	env := make(Environment)
+	env := make(Environment, len(entries))
 
 	//проходимся по всему содержанию директории
 	for _, entry := range entries {
@@ -39,7 +40,7 @@ func ReadDir(dir string) (Environment, error) {
 
 		info, err := entry.Info()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to get file info %q: %w", filepath.Join(dir, name), err)
 		}
 
 		if info.Size() == 0 {
@@ -51,7 +52,7 @@ func ReadDir(dir string) (Environment, error) {
 		//читаем содержимое файла целиком (так как файлы конфигурации обычно маленькие)
 		content, err := os.ReadFile(filepath.Join(dir, name))
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to read env file %q: %w", filepath.Join(dir, name), err)
 		}
 
 		//читаем первую строку
