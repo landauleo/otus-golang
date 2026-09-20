@@ -71,20 +71,29 @@ func (t *telnetClient) Send() error {
 	return nil
 }
 
-// раньше тут было io.Copy(t.out, t.conn) и оно висло в бесконечном цикле
 func (t *telnetClient) Receive() error {
-	bytes := make([]byte, 1024)     //1KB
-	read, err := t.conn.Read(bytes) //считываем только то, что прилетело, не ожидая закрытия сокета в отличие от io.Copy
-	if err != nil {
-		return fmt.Errorf("failed to receive: %w", err)
-	}
+	buf := make([]byte, 1024)
+	for { //входим в цикл, чтобы не прекращать чтение -> while(true)
+		//_ = t.conn.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
 
-	_, err = t.out.Write(bytes[:read])
-	if err != nil {
-		return fmt.Errorf("failed to write: %w", err)
-	}
+		n, err := t.conn.Read(buf)
+		if n > 0 {
+			if _, writeErr := t.out.Write(buf[:n]); writeErr != nil {
+				return fmt.Errorf("failed to write: %w", writeErr)
+			}
+		}
 
-	return nil
+		if err != nil {
+			//if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+			//	_ = t.conn.SetReadDeadline(time.Time{}) // Сбрасываем deadline
+			//	return nil
+			//}
+			if err == io.EOF {
+				return nil
+			}
+			return fmt.Errorf("failed to receive: %w", err)
+		}
+	}
 }
 
 func NewTelnetClient(address string, timeout time.Duration, in io.ReadCloser, out io.Writer) TelnetClient {
