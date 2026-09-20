@@ -72,9 +72,11 @@ func (t *telnetClient) Send() error {
 }
 
 func (t *telnetClient) Receive() error {
-	buf := make([]byte, 1024)
-	for { //входим в цикл, чтобы не прекращать чтение -> while(true)
-		//_ = t.conn.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
+	buf := make([]byte, 1024) //1KB
+
+	for {
+		//хак для юнит-теста
+		_ = t.conn.SetReadDeadline(time.Now().Add(50 * time.Millisecond))
 
 		n, err := t.conn.Read(buf)
 		if n > 0 {
@@ -84,18 +86,22 @@ func (t *telnetClient) Receive() error {
 		}
 
 		if err != nil {
-			//if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
-			//	_ = t.conn.SetReadDeadline(time.Time{}) // Сбрасываем deadline
-			//	return nil
-			//}
-			if err == io.EOF {
+			//если время истекло - снимаем таймаут
+			if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+				_ = t.conn.SetReadDeadline(time.Time{})
 				return nil
 			}
+
+			//если данных больше нет - снимаем таймаут
+			if err == io.EOF {
+				_ = t.conn.SetReadDeadline(time.Time{})
+				return nil
+			}
+
 			return fmt.Errorf("failed to receive: %w", err)
 		}
 	}
 }
-
 func NewTelnetClient(address string, timeout time.Duration, in io.ReadCloser, out io.Writer) TelnetClient {
 	return &telnetClient{
 		address: address,
