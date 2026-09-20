@@ -42,21 +42,6 @@ func (t *telnetClient) Connect() error {
 	}
 
 	t.conn = conn //!!!
-
-	t.wg.Add(1)
-	//как это все завершается? ф-я видит EOF, прекращает читать in и спокойно завершает свою работу
-	go func() {
-		defer t.wg.Done()
-		io.Copy(conn, t.in) //in -> conn
-	}()
-
-	t.wg.Add(1)
-	go func() {
-		defer t.wg.Done()
-		io.Copy(t.out, conn) //conn -> out
-	}()
-
-	//если тут написать wg.Wait -> все заблокируется
 	return nil
 }
 
@@ -82,10 +67,18 @@ func (t *telnetClient) Close() error {
 }
 
 func (t *telnetClient) Send() error {
+	_, err := io.Copy(t.conn, t.in)
+	if err != nil {
+		return fmt.Errorf("failed to send: %w", err)
+	} //in -> conn
 	return nil
 }
 
 func (t *telnetClient) Receive() error {
+	_, err := io.Copy(t.out, t.conn)
+	if err != nil {
+		return fmt.Errorf("failed to receive: %w", err)
+	} //conn -> out
 	return nil
 }
 
