@@ -46,24 +46,21 @@ func (t *telnetClient) Connect() error {
 }
 
 func (t *telnetClient) Close() error {
-	var err error
 	if t.conn != nil {
 		conErr := t.conn.Close()
 		if conErr != nil {
-			err = fmt.Errorf("failed to close connection: %w", conErr)
+			return fmt.Errorf("failed to close connection: %w", conErr)
 		}
 	}
 
 	if t.in != nil {
 		inErr := t.in.Close()
 		if inErr != nil {
-			err = fmt.Errorf("failed to close input stream: %w", inErr)
+			return fmt.Errorf("failed to close input stream: %w", inErr)
 		}
 	}
 
-	t.wg.Wait() //чтобы горутины подчистили ресурсы
-
-	return err
+	return nil
 }
 
 func (t *telnetClient) Send() error {
@@ -74,11 +71,19 @@ func (t *telnetClient) Send() error {
 	return nil
 }
 
+// раньше тут было io.Copy(t.out, t.conn) и оно висло в бесконечном цикле
 func (t *telnetClient) Receive() error {
-	_, err := io.Copy(t.out, t.conn)
+	bytes := make([]byte, 1024)     //1KB
+	read, err := t.conn.Read(bytes) //считываем только то, что прилетело, не ожидая закрытия сокета в отличие от io.Copy
 	if err != nil {
 		return fmt.Errorf("failed to receive: %w", err)
-	} //conn -> out
+	}
+
+	_, err = t.out.Write(bytes[:read])
+	if err != nil {
+		return fmt.Errorf("failed to write: %w", err)
+	}
+
 	return nil
 }
 
