@@ -64,44 +64,29 @@ func (t *telnetClient) Close() error {
 }
 
 func (t *telnetClient) Send() error {
+	if t.conn == nil {
+		return fmt.Errorf("connection is not established")
+	}
+
 	_, err := io.Copy(t.conn, t.in)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return fmt.Errorf("failed to send: %w", err)
-	} //in -> conn
+	}
 	return nil
 }
 
 func (t *telnetClient) Receive() error {
-	buf := make([]byte, 1024) //1KB
-
-	for {
-		//хак для юнит-теста
-		_ = t.conn.SetReadDeadline(time.Now().Add(50 * time.Millisecond))
-
-		n, err := t.conn.Read(buf)
-		if n > 0 {
-			if _, writeErr := t.out.Write(buf[:n]); writeErr != nil {
-				return fmt.Errorf("failed to write: %w", writeErr)
-			}
-		}
-
-		if err != nil {
-			//если время истекло - снимаем таймаут
-			if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
-				_ = t.conn.SetReadDeadline(time.Time{})
-				return nil
-			}
-
-			//если данных больше нет - снимаем таймаут
-			if err == io.EOF {
-				_ = t.conn.SetReadDeadline(time.Time{})
-				return nil
-			}
-
-			return fmt.Errorf("failed to receive: %w", err)
-		}
+	if t.conn == nil {
+		return fmt.Errorf("connection is not established")
 	}
+
+	_, err := io.Copy(t.out, t.conn)
+	if err != nil && err != io.EOF {
+		return fmt.Errorf("failed to receive: %w", err)
+	}
+	return nil
 }
+
 func NewTelnetClient(address string, timeout time.Duration, in io.ReadCloser, out io.Writer) TelnetClient {
 	return &telnetClient{
 		address: address,
