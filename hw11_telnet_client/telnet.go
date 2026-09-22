@@ -68,7 +68,7 @@ func (t *telnetClient) Send() error {
 		return fmt.Errorf("connection is not established")
 	}
 
-	_, err := io.Copy(t.conn, t.in)
+	_, err := io.Copy(t.conn, t.in) //в Copy прячется бесконечный цикл
 	if err != nil && err != io.EOF {
 		return fmt.Errorf("failed to send: %w", err)
 	}
